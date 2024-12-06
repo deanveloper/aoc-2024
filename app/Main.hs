@@ -1,8 +1,13 @@
 module Main where
 
-import Day04.Part2
+import Day05.Part2
+import Data.Char (isSpace)
+import Data.List (dropWhileEnd)
 
 main :: IO ()
 main = do
     contents <- readFile "input.txt"
-    print (run contents)
+    print $ run (trim contents)
+
+trim :: [Char] -> [Char]
+trim = dropWhileEnd isSpace . dropWhile isSpace

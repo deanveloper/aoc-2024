@@ -71,12 +71,16 @@ executable aoc2024
         Day03.Part2
         Day04.Part1
         Day04.Part2
+        Day05.Part1
+        Day05.Part2
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.17.2.1
+    build-depends:
+        base ^>=4.17.2.1,
+        split
 
     -- Directories containing source files.
     hs-source-dirs:   app
