@@ -1,6 +1,6 @@
 module Main where
 
-import Day07.Part2
+import Day08.Part2
 import Data.Char (isSpace)
 import Data.List (dropWhileEnd)
 
