@@ -1,9 +1,7 @@
 module Day09.Part2 where
 
--- THIS SOLUTION DOES NOT WORK AND IM NOT SURE WHY :(
-
 import Data.List (findIndex)
-import Data.Maybe (isJust, fromJust)
+import Data.Maybe (fromJust)
 
 run :: String -> Int
 run = checksum . compact . defrag . parseDiskMap
@@ -39,26 +37,29 @@ defrag' :: Int -> DiskMap -> DiskMap
 defrag' (-1) diskMap = diskMap
 defrag' idToDefrag diskMap = defrag' (idToDefrag - 1) $ defragFile idToDefrag diskMap
 
+diskMapRemove :: Int -> DiskMap -> DiskMap
+diskMapRemove idx diskMap = let
+        entry = diskMap !! idx
+        entryBefore = diskMap !! (idx - 1)
+        entryBefore' = entryBefore { freeSpace = freeSpace entryBefore + fileSize entry + freeSpace entry }
+    in  take (idx-1) diskMap ++ [entryBefore'] ++ drop (idx+1) diskMap
+
+diskMapInsertAfter :: Int -> DiskMapEntry -> DiskMap -> DiskMap
+diskMapInsertAfter idx entry diskMap = let
+        entryBefore = diskMap !! idx
+        entryBefore' = entryBefore{ freeSpace = 0 }
+        entry' = entry{ freeSpace = freeSpace entryBefore - fileSize entry }
+    in  take idx diskMap ++ [entryBefore', entry'] ++ drop (idx+1) diskMap
+
 defragFile :: Int -> DiskMap -> DiskMap
 defragFile idToDefrag diskMap = let
         entryIdx = findIndex (\e -> fileId e == idToDefrag) diskMap
-        entry = (diskMap !!) <$> entryIdx
-        beforeEntry = (\idx -> if idx == 0 then Nothing else Just (diskMap !! (idx - 1))) =<< entryIdx
+        entry = ((diskMap !!) <$> entryIdx)
         freeEntryIdx = (\e -> findIndex (\(i, each) -> fileSize e <= freeSpace each && i < fromJust entryIdx) (indexed diskMap)) =<< entry
-        freeEntry = (diskMap !!) <$> freeEntryIdx
-        freeEntry' = (\e -> e{ freeSpace = 0 }) <$> freeEntry
-        entry' = (\e -> e{ freeSpace = freeSpace (fromJust freeEntry) - fileSize e}) <$> entry
-        beforeEntry' = (\e -> e{ freeSpace = freeSpace e + fileSize (fromJust entry) + freeSpace (fromJust entry)}) <$> beforeEntry
-    in
-        if all isJust [freeEntry', entry', beforeEntry'] then let
-                untouchedBefore = take (fromJust freeEntryIdx) diskMap
-                replaceFreeSpace = fromJust <$> [freeEntry', entry']
-                untouchedBetween = slice (fromJust freeEntryIdx + 1) (fromJust entryIdx - 1) diskMap
-                replaceDefragged = [fromJust beforeEntry']
-                untouchedAfter = drop (fromJust entryIdx + 1) diskMap
-            in
-                untouchedBefore ++ replaceFreeSpace ++ untouchedBetween ++ replaceDefragged ++ untouchedAfter
-        else diskMap
+    in 
+        case (entryIdx, freeEntryIdx) of
+            (Just eIdx, Just feIdx) -> (diskMapInsertAfter feIdx (fromJust entry). diskMapRemove eIdx) diskMap
+            _ -> diskMap
 
 slice :: Int -> Int -> [a] -> [a]
 slice from to list = take (to-from) (drop from list)
