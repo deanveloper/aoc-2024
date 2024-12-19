@@ -79,6 +79,8 @@ executable aoc2024
         Day07.Part2
         Day08.Part1
         Day08.Part2
+        Day09.Part1
+        Day09.Part2
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
